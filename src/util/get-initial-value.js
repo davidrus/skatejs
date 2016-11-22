@@ -1,4 +1,4 @@
 //@flow
-export default function getInitialValue (elem:any, name:string|Symbol, opts:IPropDef):any {
-  return typeof opts.initial === 'function' ? opts.initial(elem, { name }) : opts.initial;
+export default function getInitialValue (elem:any, name:string|Symbol, propDef:IPropDef):any {
+  return typeof propDef.initial === 'function' ? propDef.initial(elem, { name }) : propDef.initial;
 }

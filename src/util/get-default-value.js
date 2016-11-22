@@ -1,4 +1,4 @@
 //@flow
-export default function getDefaultValue (elem:any, name:string|Symbol, opts:IPropDef):any {
-  return typeof opts.default === 'function' ? opts.default(elem, { name }) : opts.default;
+export default function getDefaultValue (elem:any, name:string|Symbol, propDef:IPropDef):any {
+  return typeof propDef.default === 'function' ? propDef.default(elem, { name }) : propDef.default;
 }

@@ -55,8 +55,16 @@ function createPropertyDescriptor (propDef:IPropDef):IPropertyDescriptor {
     },
 
     set: function set (newValue:any) {
-
       const propData:any = getPropData(this, name);
+      propData.lastAssignedValue = newValue;
+      let { oldValue } = propData;
+
+      console.log('prop.set', name, 'from:', typeof oldValue, oldValue, 'to:', typeof newValue, newValue);
+
+      // todo: the doc is incorrect:  When the property is initialised, oldValue will always be undefined
+      if (empty(oldValue)) {
+        oldValue = null;
+      }
 
       if (empty(newValue)) {
         newValue = getDefaultValue(this, name, propDef);
@@ -67,31 +75,21 @@ function createPropertyDescriptor (propDef:IPropDef):IPropertyDescriptor {
       }
 
       if (typeof propDef.set === 'function') {
-        let { oldValue } = propData;
-
-        // todo: I comment this out because in doc we say:
-        // When the property is initialised, oldValue will always be undefined
-        // if (empty(oldValue)) {
-        //   oldValue = null;
-        // }
-
         const changeData:ISetData = { name, newValue, oldValue };
-
         propDef.set(this, changeData);
       }
 
-      //console.log('prop.set', name, 'to:', typeof newValue, newValue, 'was:', typeof oldValue, oldValue);
-
-      // Queue a re-render.
       // Note: re-render is queued even when the value didn't change.
+      // Queue a re-render.
       this[$rendererDebounced](this);
 
       // Update prop data so we can use it next time.
       propData.internalValue = propData.oldValue = newValue;
+      console.log('prop.set', name, 'internal:', typeof newValue, newValue);
 
-      // Lync the attribute.
+      // Lync up the attribute.
       if (this[$connected]) {
-        syncPropToAttr(this, propDef, name);
+        syncPropToAttr(this, propDef, false);
       }
 
     }

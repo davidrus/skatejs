@@ -37,10 +37,10 @@ function preventDoubleCalling (elem:any, name:string, oldValue:?string, newValue
     newValue === elem[_prevNewValue];
 }
 
-function syncPropsToAttrs (elem:any) {
+function syncPropsToAttrsConnected (elem:any) {
   const props:{[k:string|Symbol]:IPropDef} = getPropDefs(elem.constructor);
   getAllKeys(props).forEach((propName:string|Symbol) => {
-    syncPropToAttr(elem, props[propName], propName);
+    syncPropToAttr(elem, props[propName], true);
   });
 }
 
@@ -158,11 +158,11 @@ export default class extends HTMLElement {
   // Custom Elements v1
   connectedCallback () {
 
+    // todo: called every time the component is reconnected! not only the first time.
+    syncPropsToAttrsConnected(this);
+
     // Used to check whether or not the component can render.
     this[$connected] = true;
-
-    // Call this after connected = true
-    syncPropsToAttrs(this);
 
     // Render!
     this[$rendererDebounced]();
@@ -198,6 +198,7 @@ export default class extends HTMLElement {
 
   // Custom Elements v1
   attributeChangedCallback (name:string, oldValue:?string, newValue:?string) {
+    console.log('attributeChangedCallback', name, typeof newValue, newValue);
     // Polyfill calls this twice.
     if (preventDoubleCalling(this, name, oldValue, newValue)) {
       return;
@@ -208,7 +209,7 @@ export default class extends HTMLElement {
     this[_prevOldValue] = oldValue;
     this[_prevNewValue] = newValue;
 
-    syncAttrToProp(this, name, oldValue, newValue);
+    syncAttrToProp(this, name, newValue);
 
     // DEPRECATED static attributeChanged()
     const { attributeChanged } = this.constructor;

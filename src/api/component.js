@@ -22,6 +22,9 @@ import getSetProps from './props';
 import initProps from '../lifecycle/props-init';
 import syncPropToAttr from '../util/sync-prop-to-attr';
 import root from 'window-or-global';
+import renderer from '../util/lifecycle-renderer';
+import rendered from '../util/lifecycle-rendered';
+import updated from '../util/lifecycle-updated';
 
 const HTMLElement = root.HTMLElement || class {};
 const _prevName = createSymbol('prevName');
@@ -271,28 +274,16 @@ export default class extends HTMLElement {
     }
   }
 
-  // Skate
-  //
-  // Maps to the static updated() callback. That logic should be moved here
-  // when that is finally removed.
   updatedCallback (prev) {
-    return this.constructor.updated(this, prev);
+    return updated(this, prev);
   }
 
-  // Skate
-  //
-  // Maps to the static rendered() callback. That logic should be moved here
-  // when that is finally removed.
   renderedCallback () {
-    return this.constructor.rendered(this);
+    return rendered(this);
   }
 
-  // Skate
-  //
-  // Maps to the static renderer() callback. That logic should be moved here
-  // when that is finally removed.
   rendererCallback () {
-    return this.constructor.renderer(this);
+    return renderer(this);
   }
 
   // Skate
@@ -347,51 +338,23 @@ export default class extends HTMLElement {
   //
   // DEPRECATED
   //
-  // Move this to rendererCallback() before removing.
   static updated (elem, prev) {
-    if (!prev) {
-      return true;
-    }
-
-    // use get all keys so that we check Symbols as well as regular props
-    // using a for loop so we can break early
-    const allKeys = getAllKeys(prev);
-    for (let i = 0; i < allKeys.length; i += 1) {
-      if (prev[allKeys[i]] !== elem[allKeys[i]]) {
-        return true;
-      }
-    }
-
-    return false;
+    return updated(elem, prev);
   }
 
   // Skate
   //
   // DEPRECATED
   //
-  // Move this to rendererCallback() before removing.
-  static rendered () {}
+  static rendered () {
+    rendered();
+  }
 
   // Skate
   //
   // DEPRECATED
   //
-  // Move this to rendererCallback() before removing.
   static renderer (elem) {
-    if (!elem.shadowRoot) {
-      elem.attachShadow({ mode: 'open' });
-    }
-    patchInner(elem.shadowRoot, () => {
-      const possibleFn = elem.renderCallback();
-      if (typeof possibleFn === 'function') {
-        possibleFn();
-      } else if (Array.isArray(possibleFn)) {
-        possibleFn.forEach((fn) => {
-          if (typeof fn === 'function') {
-            fn();
-          }
-        });
-      }
-    });
+    renderer(elem);
   }
 }
